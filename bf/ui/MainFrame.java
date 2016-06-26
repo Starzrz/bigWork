@@ -66,8 +66,8 @@ public class MainFrame {
 	filePanel filePanel;
 	myPanel codePanel;
 	JPanel IOPanel;
-	
-	
+	public String userNameString;
+	JPanel userPanel;
 	JTextArea codeArea;
 	JTextArea inputArea;
 	public static JTextArea outputArea;
@@ -86,8 +86,13 @@ public class MainFrame {
 	JMenuItem excuteItem;
 	JMenuItem clearItem;
 	
-	public MainFrame() {
+	public MainFrame(String userName) {
+		
+		userNameString = userName;
+		System.out.println(userNameString);
 		frame = new JFrame("BF IDE Version 1.0");
+		userPanel = new JPanel();
+		userPanel.setLayout(new BorderLayout());
 		//文件面板绘制
 		filePanel = new filePanel();
 		fileArea = new JTextArea(40,30);
@@ -147,7 +152,7 @@ public class MainFrame {
 	   outputArea.setFont(labelFont);
 	    IOPanel.add(inputArea);
 	    IOPanel.add(outputArea);
-	    
+	   
 	    //绘制菜单
 	    Font menuFont = new Font("Comic Sans MS", Font.PLAIN, 30);
 	    menuBar = new JMenuBar();
@@ -214,11 +219,19 @@ public class MainFrame {
 	    fileBorder.setBorder(myTitleBorder);
 	    fileBorder.setTitleColor(Color.BLUE);
 	    filePanel.setBorder(fileBorder);
+	    
+	    //标签绘制
+	   JLabel userLabel = new JLabel("Hello!"+userNameString);
+		userLabel.setFont(codeFont);
+		
+		userLabel.setForeground(Color.ORANGE);
+		userPanel.add(userLabel,BorderLayout.NORTH);
+		userPanel.add(filePanel,BorderLayout.CENTER);
 	    //总体布局
 	    frame.setJMenuBar(menuBar);
 	    frame.addWindowListener(new WindowsActionlistener());
 	    frame.add(BorderLayout.SOUTH,IOPanel);
-	    frame.add(BorderLayout.WEST,filePanel);
+	    frame.add(BorderLayout.WEST,userPanel);
 	    frame.add(BorderLayout.CENTER,codePanel);
 	    frame.setSize(1500, 1000);
 	    frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

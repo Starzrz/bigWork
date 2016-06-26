@@ -10,11 +10,12 @@ import java.rmi.RemoteException;
 import NetWork.NetWork;
 import rmi.RemoteHelper;
 import service.IOService;
+import ui.LogFrame;
 import ui.MainFrame;
 
 public class ClientRunner {
 	private RemoteHelper remoteHelper;
-	static MainFrame mainFrame;
+	
 	public ClientRunner() {
 		linkToServer();
 		initGUI();
@@ -35,7 +36,7 @@ public class ClientRunner {
 	}
 	
 	private void initGUI() {
-		mainFrame = new MainFrame();
+		LogFrame logFrame = new LogFrame();
 		
 	}
 	
