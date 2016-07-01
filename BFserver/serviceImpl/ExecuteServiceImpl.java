@@ -17,6 +17,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 	public String execute(String code, String param) throws RemoteException {
 		// TODO Auto-generated method stub
 		int i=0;
+		param = param+" ";
 		char []codeChar =code.toCharArray();
 		int firstnum=i;
 		while(i<codeChar.length){

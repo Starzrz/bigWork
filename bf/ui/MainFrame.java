@@ -3,6 +3,7 @@ package ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -14,16 +15,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.lang.reflect.Parameter;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -32,11 +39,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.StringContent;
+
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import NetWork.NetWork;
 import rmi.RemoteHelper;
@@ -59,20 +69,31 @@ class myPanel extends JPanel{
 		arg0.drawImage(image, 0, 0, this.getWidth(),this.getHeight(),this);
 	}
 }
+class myList<State> extends ArrayList<State>{
+	public myList() {
+		// TODO Auto-generated constructor stub
+	super();
+	}
+	public void removeFrom(int first,int last){
+		removeRange(first, last);
+	}
+}
 public class MainFrame {
 	//NetWork netWork;
 	//Server server;
+	Thread thread ;
 	public static JFrame frame;
 	filePanel filePanel;
 	myPanel codePanel;
 	JPanel IOPanel;
 	public String userNameString;
+	String fileNameString;
 	JPanel userPanel;
 	JTextArea codeArea;
 	JTextArea inputArea;
 	public static JTextArea outputArea;
 	JTextArea fileArea;
-	
+	JButton logoutButton;
 	JMenuBar menuBar;
 	JMenu fileMenu;
 	JMenu runMenu;
@@ -85,7 +106,15 @@ public class MainFrame {
 	JMenuItem logoutItem;
 	JMenuItem excuteItem;
 	JMenuItem clearItem;
-	
+	JPanel logPanel;
+	myList<State> saveList = new myList<State>();
+	int ptr;
+	public String getcode(){
+		return codeArea.getText();
+	}
+	public String getInput(){
+		return inputArea.getText();
+	}
 	public MainFrame(String userName) {
 		
 		userNameString = userName;
@@ -95,8 +124,9 @@ public class MainFrame {
 		userPanel.setLayout(new BorderLayout());
 		//文件面板绘制
 		filePanel = new filePanel();
+		filePanel.setSize(30, 40);
 		fileArea = new JTextArea(40,30);
-		filePanel.add(fileArea);
+		//filePanel.add(fileArea);
 		filePanel.setBackground(Color.blue);
 		fileArea.setBackground(Color.LIGHT_GRAY);
 		Font fileFont = new Font("隶书", Font.PLAIN, 20);
@@ -108,6 +138,8 @@ public class MainFrame {
 	    codeArea.setOpaque(false);
 	    codeArea.setWrapStyleWord(true);
 	    codeArea.addKeyListener(new sendListener());
+	    codeArea.setEditable(false);
+	    codeArea.addKeyListener(new revokeListener());
 	    codePanel = new myPanel();
 	    fileArea.setOpaque(false);
 	    JScrollPane codePane = new JScrollPane(codeArea);
@@ -135,6 +167,7 @@ public class MainFrame {
 	    inputArea.setWrapStyleWord(true);
 	    inputArea.setBackground(Color.LIGHT_GRAY);
 	    inputArea.setFont(labelFont);
+	    inputArea.addKeyListener(new revokeListener());
 	    JLabel inputLabel = new JLabel("Input",SwingConstants.LEFT);
 	    inputLabel.setFont(labelFont);
 	    inputLabel.setForeground(Color.BLUE);
@@ -169,8 +202,10 @@ public class MainFrame {
 		userMenu.setForeground(Color.RED);
 		openItem = new JMenuItem("open");
 		openItem.setFont(menuFont);
+		openItem.addActionListener(new openActionlistener());
 		newItem = new JMenuItem("new");
 		newItem.setFont(menuFont);
+		newItem.addActionListener(new NewActionlistener());
 		saveItem = new JMenuItem("save");
 		saveItem.setFont(menuFont);
 		saveItem.addActionListener(new saveListener());
@@ -221,12 +256,24 @@ public class MainFrame {
 	    filePanel.setBorder(fileBorder);
 	    
 	    //标签绘制
-	   JLabel userLabel = new JLabel("Hello!"+userNameString);
+	   JLabel userLabel = new JLabel("Hello!"+userNameString+"      ");
 		userLabel.setFont(codeFont);
 		
 		userLabel.setForeground(Color.ORANGE);
-		userPanel.add(userLabel,BorderLayout.NORTH);
+		ImageIcon icon = new ImageIcon("logout.jpg");
+		Image image = icon.getImage();
+		icon = new ImageIcon(image.getScaledInstance(100, 30, image.SCALE_SMOOTH));
+		
+		logoutButton = new JButton(icon);
+		logoutButton.setMargin(new Insets(0, 0, 0, 0));
+		logoutButton.addActionListener(new logoutActionlistener());
+		logPanel = new JPanel();
+		logPanel.add(userLabel);
+		logPanel.add(logoutButton);
+		userPanel.add(logPanel,BorderLayout.NORTH);
 		userPanel.add(filePanel,BorderLayout.CENTER);
+		setFilepanel();
+	
 	    //总体布局
 	    frame.setJMenuBar(menuBar);
 	    frame.addWindowListener(new WindowsActionlistener());
@@ -237,10 +284,121 @@ public class MainFrame {
 	    frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    frame.setVisible(true);
 	    frame.setLocationRelativeTo(null);
-	    
-	    
+	    //启动线程
+	    thread = new Thread(new revoke(this));
+	    thread.start();
 		// TODO Auto-generated constructor stub
 	}
+	class revokeListener implements KeyListener{
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			// TODO Auto-generated method stub
+			if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_Z){ //撤销监听
+				try{
+				ptr--;
+				State lastState = saveList.get(ptr);
+				codeArea.setText(lastState.codeString);
+				inputArea.setText(lastState.inputString);
+				}
+				catch (Exception e2) {
+					ptr++;
+					// TODO: handle exception
+				}
+				
+			}
+			else if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_Y){
+				System.out.println("get");
+				try {
+					ptr++;
+					System.out.println(ptr);
+					State lastState = saveList.get(ptr);
+					System.out.println(lastState.codeString);
+					codeArea.setText(lastState.codeString);
+					inputArea.setText(lastState.inputString);
+				} catch (Exception e2) {
+					ptr--;
+					// TODO: handle exception
+				}
+			}
+			else {
+				saveList.removeFrom(ptr+1, saveList.size());
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void keyTyped(KeyEvent e) {
+			// TODO Auto-generated method stub
+			
+			
+		}
+		
+	}
+	class FontCellRenderer extends JPanel implements ListCellRenderer
+	 {
+	    public Component getListCellRendererComponent(JList list, Object value, int index,
+	       boolean isSelected, boolean cellHasFocus)
+	    {
+	       text = (String)value;
+	       background = isSelected ? list.getSelectionBackground() : list.getBackground();
+	       foreground = isSelected ? list.getSelectionForeground() : list.getForeground();
+	       return this;
+	    }
+	    public void paintComponent(Graphics g)
+	    {
+	       g.setColor(background);
+	       g.fillRect(0, 0, getWidth(), getHeight());  //设置背景色
+	       g.setColor(foreground);
+	       g.drawString(text, 5, 15);   //在制定位置绘制文本
+	    }
+	    public Dimension getPreferredSize()
+	    {
+	       return new Dimension(50, 50);   //Cell的尺寸
+	    }
+	    private String text;
+	    private Color background=Color.BLUE;
+	    private Color foreground=Color.red;
+	 }
+	public void setFilepanel(){
+		try {
+			String tempString=RemoteHelper.getInstance().getIOService().readFileList(userNameString);
+			if(tempString.charAt(0)=='0'){
+				filePanel.add(fileArea);
+				return;
+			}
+			else{
+				Font fileFont = new Font("Times New Roman",Font.BOLD,30);
+				System.out.println("SetList"+tempString);
+				tempString = tempString.trim();
+				String file[] = tempString.split(" ");
+				for(int i=0;i<file.length;i++){
+					file[i] ="   "+ file[i]+".txt";
+				}
+				System.out.println(file[0]);
+				JList fileList= new JList(file);
+				
+				//fileList.setCellRenderer(new FontCellRenderer());
+				fileList.setFont(fileFont);
+				fileList.setLayoutOrientation(JList.VERTICAL);
+				fileList.setOpaque(false);
+				fileList.setBackground(new Color(0, 0, 0, 0));
+				
+		        fileList.addMouseListener(new fileClinkListener());
+				filePanel.setLayout(new BorderLayout());
+				filePanel.add(BorderLayout.WEST,fileList);
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}//String tempString 
+	}
+	
 	class myTitle implements Border{
 
 		private int thickness; //边界线条的厚度
@@ -282,6 +440,149 @@ public class MainFrame {
 		
 		}
 
+		
+	}
+	class fileClinkListener extends MouseAdapter{
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			// TODO Auto-generated method stub
+			if(e.getClickCount()>=2){
+				String fileString = ((JList)e.getSource()).getSelectedValue()+"";
+				fileString =fileString.trim().substring(0,fileString.length()-7);
+				//System.out.println(fileString);
+				fileNameString = fileString;
+				String codeString = "";
+				try {
+					String tempString=RemoteHelper.getInstance().getIOService().readFile(userNameString, fileNameString);
+					
+					char [ ]temp = tempString.toCharArray();
+					for(char c:temp){
+						if(c!=' '){
+							codeString = codeString+c;
+						}
+					}
+					codeArea.setText(codeString);
+					codeArea.setEditable(true);
+					codeArea.requestFocus();
+					inputArea.setText("");
+					setinit();
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					JOptionPane.showMessageDialog(null, "Read ERROR");
+				}
+				
+			}
+		}
+	}
+	class openActionlistener implements ActionListener{   //监听open
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			String inputString=JOptionPane.showInputDialog(null,"Please enter a file name","OPEN",JOptionPane.OK_CANCEL_OPTION);
+			fileNameString = inputString;
+			 
+			String codeString = "";
+			try {
+				String tempString=RemoteHelper.getInstance().getIOService().readFile(userNameString, fileNameString);
+				if(tempString.charAt(0)=='0'){
+					JOptionPane.showMessageDialog(null, "File doesn't exist!");
+					return;
+				}
+				char [ ]temp = tempString.toCharArray();
+				for(char c:temp){
+					if(c!=' '){
+						codeString = codeString+c;
+					}
+				}
+				inputArea.setText("");
+				codeArea.setText(codeString);
+				setinit();
+				codeArea.setEditable(true);
+				codeArea.requestFocus();
+				
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				JOptionPane.showMessageDialog(null, "Read ERROR");
+			}
+			
+		}
+		
+	}
+	class NewActionlistener implements ActionListener{    //监听new
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			String inputString=JOptionPane.showInputDialog(null,"Please enter a file name","NEW",JOptionPane.OK_CANCEL_OPTION);
+		    fileNameString = inputString;
+		   
+		    try {
+		    	String tempString=RemoteHelper.getInstance().getIOService().readFileList(userNameString);
+		    	if(tempString.charAt(0)=='0'){
+		    		
+		    	}
+		    	else{
+		    		String[]tStrings = tempString.split(" ");
+		    		for(String s:tStrings){
+		    			System.out.println(s);
+		    			if(s.equals(fileNameString)){
+		    				
+		    				JOptionPane.showMessageDialog(null, "File has already existed!");
+		    				return;
+		    			}
+		    		}
+		    	}
+		    	 RemoteHelper.getInstance().getIOService().writeFile(fileNameString, userNameString, "fileList", true);
+			
+				}catch (Exception e2) {
+					// TODO: handle exception
+				}
+		    	
+		    	
+		    codeArea.setText("");
+		    inputArea.setText("");
+		    String code = codeArea.getText();
+		    setinit();
+			try {
+				RemoteHelper.getInstance().getIOService().writeFile(code, userNameString, fileNameString,false);
+			} catch (RemoteException e1) {
+				e1.printStackTrace();
+			}
+		    codeArea.setEditable(true);
+		    codeArea.requestFocus();
+		    //frame.dispose();
+		    setFilepanel();
+		    filePanel.setVisible(false);
+		    filePanel.setVisible(true);
+		    //frame.setVisible(false);
+		   // frame.setVisible(true);
+		   
+			
+				
+		}
+		
+		
+	}
+	class logoutActionlistener implements ActionListener{             //登出按钮的监听
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			 int i =JOptionPane.showConfirmDialog(null, "Do you want to save before logout?","Logout the IDE",JOptionPane.YES_NO_CANCEL_OPTION);
+			 if(i==0){
+				 saveItem.doClick();
+				 frame.dispose();
+				 LogFrame logFrame = new LogFrame();
+			 }
+			 if(i==1){
+				frame.dispose();
+				 LogFrame logFrame = new LogFrame();
+			 }
+			 if (i==2) {
+				
+			}
+		}
 		
 	}
 	class WindowsActionlistener extends WindowAdapter{
@@ -335,7 +636,8 @@ public class MainFrame {
 		public void actionPerformed(ActionEvent e) {
 			String code = codeArea.getText();
 			try {
-				RemoteHelper.getInstance().getIOService().writeFile(code, "admin", "code");
+				RemoteHelper.getInstance().getIOService().writeFile(code, userNameString, fileNameString,false);
+				
 			} catch (RemoteException e1) {
 				e1.printStackTrace();
 			}
@@ -344,6 +646,45 @@ public class MainFrame {
 		}
 		
 	}
+	public void setinit(){
+		saveList.clear();
+		ptr = 0;
+		State firstState = new State(getcode(),getInput());
+		saveList.add(firstState);
+	}
+class revoke implements Runnable{
+		
+		public revoke(MainFrame mframe) {
+			
+			
+			State firstState = new State(getcode(),getInput());
+			saveList.add(firstState);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			while(true){
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			State newState = new State(getcode(),getInput());
+			State oldState = saveList.get(ptr);
+			if(!(newState.codeString.equals(oldState.codeString)) || !(newState.inputString.equals(oldState.inputString))){
+				saveList.add(newState);
+				
+				ptr++;
+				System.out.println("add"+ptr);
+				
+			}
+		}
+		
+	}
+}
 	public class sendListener implements KeyListener{
 
 		@Override
@@ -371,7 +712,8 @@ public class MainFrame {
 		
 	}
 
-}	/*class MenuItemActionListener implements ActionListener {
+}
+/*class MenuItemActionListener implements ActionListener {
 		/**
 		 * 子菜单响应事件
 		 */

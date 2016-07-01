@@ -20,27 +20,36 @@ public class IOServiceImpl implements IOService{
 	}
 	
 	@Override
-	public boolean writeFile(String file, String userId, String fileName) {
+	public boolean writeFile(String file, String userId, String fileName,boolean w) {
 		File f = new File(userId + "_" + fileName+".txt");
+		boolean b = true;
+		if(!f.exists())
+			b= false;
 		try {
-			FileWriter fw = new FileWriter(f, true);
+			FileWriter fw = new FileWriter(f, w);
 			BufferedWriter writer = new BufferedWriter(fw);
+			writer.newLine();
 		
 			writer.write(file);
-			writer.newLine();
+			
 			writer.flush();
 			writer.close();
-			return true;
+			
 		} catch (IOException e) {
 			e.printStackTrace();
-			return false;
+			b=false;
 		}
+		return b;
 	}
 
 	@Override
 	public String readFile(String userId, String fileName) {
 		File file = new File(userId + "_" + fileName+".txt");
+		
 		String resultString="";
+		if(!file.exists()){
+			resultString =resultString+"0";
+		}
 		try {
 			FileReader fileReader = new FileReader(file);
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -72,8 +81,35 @@ public class IOServiceImpl implements IOService{
 
 	@Override
 	public String readFileList(String userId) {
+		File file = new File(userId+"_"+"fileList"+".txt");
+		String resultString="";
+		if(!file.exists()){
+			resultString =resultString+"0";
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		try {
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
+			String line="";
+			while((line=bufferedReader.readLine())!=null){
+			resultString = resultString+" "+line;
+			
+			}
+			fileReader.close();
+			bufferedReader.close();
+		}
+			//}
+		 catch (Exception e) {
+			e.printStackTrace();
+			// TODO: handle exception
+		}
 		// TODO Auto-generated method stub
-		return "OK";
+		return resultString;
 	}
 	
 }

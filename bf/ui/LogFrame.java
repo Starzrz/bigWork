@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.rmi.RemoteException;
 import java.security.Key;
+import java.util.ArrayList;
 
 import javax.swing.Box;
 import javax.swing.ImageIcon;
@@ -36,6 +37,7 @@ public class LogFrame {
 	JPasswordField passField;
 	JButton button1 ;
 	JFrame frame = new JFrame();
+	MainFrame mainFrame;
 	public void setIcon(String file, JButton iconButton) { 
 		ImageIcon icon = new ImageIcon(file); 
 		Image temp = icon.getImage().getScaledInstance(iconButton.getWidth(), 
@@ -45,6 +47,7 @@ public class LogFrame {
 		} 
 	
 	public LogFrame(){
+		
 		Font nameFont = new Font("Comic Sans MS",Font.BOLD,20);
 		Font logFont = new Font("",Font.PLAIN,30);
 		frame.setTitle("Login");
@@ -112,7 +115,8 @@ public class LogFrame {
 		JPasswordField signPasswordField;
 		JPasswordField confirmPasswordField;
 		public SignUp() {
-			
+			Font nameFont = new Font("Comic Sans MS",Font.BOLD,20);
+			Font logFont = new Font("",Font.PLAIN,30);
 			signframe = new JFrame("Sign up");
 			signNameField = new JTextField(10);
 			signNameField.setMaximumSize(signNameField.getPreferredSize());
@@ -120,7 +124,7 @@ public class LogFrame {
 			signPasswordField.setMaximumSize(signPasswordField.getPreferredSize());
 			confirmPasswordField = new JPasswordField(10);
 			confirmPasswordField.setMaximumSize(confirmPasswordField.getPreferredSize());  //确认密码窗口
-			JLabel nameLabel = new JLabel("Name");
+			JLabel nameLabel = new JLabel("Name ");
 			Box nameBox = Box.createHorizontalBox();
 			nameBox.add(nameLabel);
 			nameBox.add(Box.createHorizontalStrut(30));
@@ -136,9 +140,9 @@ public class LogFrame {
 			confirmBox.add(Box.createHorizontalStrut(20));
 			confirmBox.add(confirmPasswordField);
 			
-			signButton = new JButton("sign up");
+			signButton = new JButton();
 			signButton.addActionListener(new signupListener());
-			concelButton = new JButton("concel");
+			concelButton = new JButton();
 			concelButton.addActionListener(new concelListener());
 			Box buttonBox = Box.createHorizontalBox();
 			buttonBox.add(signButton);
@@ -150,9 +154,29 @@ public class LogFrame {
 			panelBox.add(confirmBox);
 			panelBox.add(Box.createVerticalGlue());
 			panelBox.add(buttonBox);
+			ImageIcon icon = new ImageIcon("signUp.jpg");
+			Image image = icon.getImage();
+			icon = new ImageIcon(image.getScaledInstance(120, 40, image.SCALE_SMOOTH));
+			signButton.setIcon(icon);
+			signButton.setMargin(new Insets(0, 0, 0, 0));
+			ImageIcon icon2 = new ImageIcon("Cancel.jpg");
+			Image image2 = icon2.getImage();
+			icon2 = new ImageIcon(image2.getScaledInstance(120, 40, image.SCALE_SMOOTH));
+			concelButton.setIcon(icon2);
+			concelButton.setMargin(new Insets(0, 0, 0, 0));
+			//signNameField.setFont(logFont);
+			signNameField.setPreferredSize(new Dimension(500, 30));
+			signPasswordField.setPreferredSize(new Dimension(500, 30));
+			confirmPasswordField.setPreferredSize(new Dimension(500, 30));
+			signNameField.setMaximumSize(signNameField.getPreferredSize());
+			signPasswordField.setMaximumSize(signPasswordField.getPreferredSize());
+			confirmPasswordField.setMaximumSize(confirmPasswordField.getPreferredSize());
+			nameLabel.setFont(nameFont);
+			passLabel.setFont(nameFont);
+			confirmLabel.setFont(nameFont);
 			signframe.getContentPane().add(panelBox,BorderLayout.CENTER);
 			signframe.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-			signframe.setSize(300,300);
+			signframe.setSize(400,300);
 			signframe.addWindowListener(new windowCloseListener());
 			signframe.setLocationRelativeTo(null);
 			signframe.setVisible(true);
@@ -197,18 +221,19 @@ public class LogFrame {
 				}
 				else {
 					try {     //注册成功，写入信息
-						RemoteHelper.getInstance().getIOService().writeFile(userInf, "Admin","userlist");
+						RemoteHelper.getInstance().getIOService().writeFile(userInf, "Admin","userlist",true);
 					} catch (RemoteException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 					int i = JOptionPane.showConfirmDialog(null, "Success!Do you want to login directly?","Congratulation!",JOptionPane.YES_NO_OPTION);
-					if(i==0){    //判断是否要直接登录
+					if(i==0){  
+						frame.setVisible(true);//判断是否要直接登录
 						nameField.setText(userNameString);
 						passField.setText(passString);
 						button1.doClick();
 						signframe.dispose();
-						frame.setVisible(true);
+						
 					}
 					else if(i==1){
 						signframe.dispose();
@@ -263,7 +288,7 @@ public class LogFrame {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if(checkString.length()<1){ //若无人注册，报错
+				if(checkString.length()<=1){ //若无人注册，报错
 					JOptionPane.showMessageDialog(null, "No one has signed up");
 				}
 				else{
@@ -272,7 +297,8 @@ public class LogFrame {
 				for(String s:checkStrings){    //检查账户密码是否正确
 					System.out.println(s);
 					if(s.equals(user_InfString)){
-						MainFrame frame = new MainFrame(userName);
+						mainFrame = new MainFrame(userName);
+						frame.dispose();
 						isRight = true;
 					}
 				}
@@ -284,6 +310,40 @@ public class LogFrame {
 		      }
 		}
 		
+	}
+	class revoke implements Runnable{
+		ArrayList<State> saveList;
+		MainFrame frame;
+		int ptr=0;
+		public revoke(MainFrame mframe) {
+			
+			
+			frame = mframe;
+			saveList = frame.saveList;
+			State firstState = new State(frame.getcode(),frame.getInput());
+			saveList.add(firstState);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			while(true){
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			State newState = new State(frame.getcode(), frame.getInput());
+			if(!(newState.equals(saveList.get(ptr)))){
+				saveList.add(newState);
+				ptr++;
+				frame.ptr=ptr;
+			}
+		}
+		
+	}
 	}
 	class logKeyListener implements KeyListener{
 
