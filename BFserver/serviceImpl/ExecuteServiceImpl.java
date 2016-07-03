@@ -8,13 +8,14 @@ import service.UserService;
 
 public class ExecuteServiceImpl implements ExecuteService {
 	char[]stack = new char[10000];
-	String resultString="";
+	
 	int ptr = 5000;
 	/**
 	 * 请实现该方法
 	 */
 	@Override
 	public String execute(String code, String param) throws RemoteException {
+		String resultString="";
 		// TODO Auto-generated method stub
 		int i=0;
 		param = param+" ";

@@ -1,6 +1,6 @@
 package ui;
 
-public class State {
+public class State {  //保存code和input的状态类
 	String codeString;
 	String inputString;
 	public State(String code,String input) {

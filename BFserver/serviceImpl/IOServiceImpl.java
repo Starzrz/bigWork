@@ -48,7 +48,7 @@ public class IOServiceImpl implements IOService{
 		
 		String resultString="";
 		if(!file.exists()){
-			resultString =resultString+"0";
+			return resultString;
 		}
 		try {
 			FileReader fileReader = new FileReader(file);
@@ -84,13 +84,14 @@ public class IOServiceImpl implements IOService{
 		File file = new File(userId+"_"+"fileList"+".txt");
 		String resultString="";
 		if(!file.exists()){
-			resultString =resultString+"0";
+			
 			try {
 				file.createNewFile();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			return resultString;
 		}
 		try {
 			FileReader fileReader = new FileReader(file);
