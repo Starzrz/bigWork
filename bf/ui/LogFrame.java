@@ -1,9 +1,11 @@
 package ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Label;
@@ -25,39 +27,53 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import rmi.RemoteHelper;
 
-public class LogFrame {
-	private static final int Width = 400;
-	private static final int Height = 250;
+public class LogFrame {  //登陆窗口
+	private static final int Width = 500;
+	private static final int Height = 300;
 	JTextField nameField;
 	JPasswordField passField;
 	JButton button1 ;
 	JFrame frame = new JFrame();
 	MainFrame mainFrame;
-	public void setIcon(String file, JButton iconButton) { 
+	JLabel bfLabel;
+	myPanel mainPanel ;
+	LogFrame logFrame;
+	public void setIcon(String file, JButton iconButton) {   //设置按钮图片的方法
 		ImageIcon icon = new ImageIcon(file); 
 		Image temp = icon.getImage().getScaledInstance(iconButton.getWidth(), 
 		iconButton.getHeight(), icon.getImage().SCALE_DEFAULT); 
 		icon = new ImageIcon(temp); 
 		iconButton.setIcon(icon); 
-		} 
-	
-	public LogFrame(){
 		
+		} 
+	class myPanel extends JPanel{  //重绘登陆页面背景
+		@Override
+		protected void paintComponent(Graphics arg0) {
+			// TODO Auto-generated method stub
+			Image image = new ImageIcon("whiteBack.jpg").getImage();
+			arg0.drawImage(image, 0, 0, this.getWidth(),this.getHeight(),this);
+		}
+	}
+	public LogFrame(){
+		logFrame = this;
+		 mainPanel= new myPanel();
 		Font nameFont = new Font("Comic Sans MS",Font.BOLD,20);
 		Font logFont = new Font("",Font.PLAIN,30);
 		frame.setTitle("Login");
 		frame.setSize(Width, Height);
-		Container container = frame.getContentPane();
+		
+		Container container = frame.getContentPane();  
 		JLabel nameLabel = new JLabel("Name    ");
 		nameField = new JTextField();
 		nameField.setPreferredSize(new Dimension(200, 30));
 		nameField.setMaximumSize(nameField.getPreferredSize());
-		Box nameBox = Box.createHorizontalBox();
+		Box nameBox = Box.createHorizontalBox();  //采用box布局，控制组件间距
 		nameBox.add(nameLabel);
 		nameBox.add(Box.createHorizontalStrut(20));
 		nameBox.add(nameField);
@@ -83,7 +99,7 @@ public class LogFrame {
 		Image image2 = icon2.getImage();
 		icon2 = new ImageIcon(image2.getScaledInstance(120, 40, image.SCALE_SMOOTH));
 		button1 = new JButton(icon);
-		button1.setMargin(new Insets(0, 0, 0, 0));
+		button1.setMargin(new Insets(0, 0, 0, 0));  //按钮设置图片全填充
 		button1.addActionListener(new clinkListener());
 		JButton button2 = new JButton(icon2);
 		button2.setMargin(new Insets(0, 0, 0, 0));
@@ -98,177 +114,32 @@ public class LogFrame {
 		panelBox.add(passBox);
 		panelBox.add(Box.createVerticalGlue());
 		panelBox.add(buttonBox);
-		container.add(panelBox,BorderLayout.CENTER);
-
+		
+		//label绘制
+		mainPanel.setLayout(new BorderLayout());
+		mainPanel.add(panelBox,BorderLayout.CENTER);
+		
+		ImageIcon bfImageIcon = new ImageIcon("BFsmall.jpg");
+		bfLabel=new JLabel(bfImageIcon);
+		mainPanel.add(bfLabel,BorderLayout.WEST);
+		
+		container.add(mainPanel);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 		frame.setVisible(true);
 		frame.setLocationRelativeTo(null);
 		frame.show();
 	
 		// TODO Auto-generated construc"tor stub
 	}
-	class SignUp {     //内部类，实现注册界面
-		JFrame signframe;
-		JButton signButton;
-		JButton concelButton;
-		JTextField signNameField;
-		JPasswordField signPasswordField;
-		JPasswordField confirmPasswordField;
-		public SignUp() {
-			Font nameFont = new Font("Comic Sans MS",Font.BOLD,20);
-			Font logFont = new Font("",Font.PLAIN,30);
-			signframe = new JFrame("Sign up");
-			signNameField = new JTextField(10);
-			signNameField.setMaximumSize(signNameField.getPreferredSize());
-			signPasswordField = new JPasswordField(10);
-			signPasswordField.setMaximumSize(signPasswordField.getPreferredSize());
-			confirmPasswordField = new JPasswordField(10);
-			confirmPasswordField.setMaximumSize(confirmPasswordField.getPreferredSize());  //确认密码窗口
-			JLabel nameLabel = new JLabel("Name ");
-			Box nameBox = Box.createHorizontalBox();
-			nameBox.add(nameLabel);
-			nameBox.add(Box.createHorizontalStrut(30));
-			nameBox.add(signNameField);
-			JLabel passLabel = new JLabel("Password");
-			Box passBox = Box.createHorizontalBox();
-			passBox.add(passLabel);
-			passBox.add(Box.createHorizontalStrut(8));
-			passBox.add(signPasswordField);
-			JLabel confirmLabel = new JLabel("Confirm");
-			Box confirmBox = Box.createHorizontalBox();
-			confirmBox.add(confirmLabel);
-			confirmBox.add(Box.createHorizontalStrut(20));
-			confirmBox.add(confirmPasswordField);
-			
-			signButton = new JButton();
-			signButton.addActionListener(new signupListener());
-			concelButton = new JButton();
-			concelButton.addActionListener(new concelListener());
-			Box buttonBox = Box.createHorizontalBox();
-			buttonBox.add(signButton);
-			buttonBox.add(Box.createHorizontalStrut(40));
-			buttonBox.add(concelButton);
-			Box panelBox = Box.createVerticalBox();
-			panelBox.add(nameBox);
-			panelBox.add(passBox);
-			panelBox.add(confirmBox);
-			panelBox.add(Box.createVerticalGlue());
-			panelBox.add(buttonBox);
-			ImageIcon icon = new ImageIcon("signUp.jpg");
-			Image image = icon.getImage();
-			icon = new ImageIcon(image.getScaledInstance(120, 40, image.SCALE_SMOOTH));
-			signButton.setIcon(icon);
-			signButton.setMargin(new Insets(0, 0, 0, 0));
-			ImageIcon icon2 = new ImageIcon("Cancel.jpg");
-			Image image2 = icon2.getImage();
-			icon2 = new ImageIcon(image2.getScaledInstance(120, 40, image.SCALE_SMOOTH));
-			concelButton.setIcon(icon2);
-			concelButton.setMargin(new Insets(0, 0, 0, 0));
-			//signNameField.setFont(logFont);
-			signNameField.setPreferredSize(new Dimension(500, 30));
-			signPasswordField.setPreferredSize(new Dimension(500, 30));
-			confirmPasswordField.setPreferredSize(new Dimension(500, 30));
-			signNameField.setMaximumSize(signNameField.getPreferredSize());
-			signPasswordField.setMaximumSize(signPasswordField.getPreferredSize());
-			confirmPasswordField.setMaximumSize(confirmPasswordField.getPreferredSize());
-			nameLabel.setFont(nameFont);
-			passLabel.setFont(nameFont);
-			confirmLabel.setFont(nameFont);
-			signframe.getContentPane().add(panelBox,BorderLayout.CENTER);
-			signframe.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-			signframe.setSize(400,300);
-			signframe.addWindowListener(new windowCloseListener());
-			signframe.setLocationRelativeTo(null);
-			signframe.setVisible(true);
-			// TODO Auto-generated constructor stub
-		}
-		class signupListener implements ActionListener{
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				boolean isExist = false;
-				String userNameString  = signNameField.getText();
-				String passString = String.valueOf(signPasswordField.getPassword());
-				String confirmString = String.valueOf(confirmPasswordField.getPassword());
-				String userInf = userNameString+"_"+passString;
-				try {
-					String []uStrings = RemoteHelper.getInstance().getIOService().readFile("Admin","userlist").substring(1).split(" ");
-					OK:
-					for(String s:uStrings){
-						String []tempStrings =s.split("_");
-						for(String a:tempStrings){
-							if(a.equals(userNameString)){
-								isExist = true;       //检查已注册列表，不允许重名
-								break OK;
-							}
-						}
-					}
-				} catch (RemoteException e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
-				}
-				
-				
-				if((userNameString.length()<1) || (passString.length()<1) || (confirmString.length()<1)){ //不允许为空
-					JOptionPane.showMessageDialog(null, "The username or password should not be null!");
-				}
-				else if(isExist){    //重名提示
-					JOptionPane.showMessageDialog(null, "The username has already existed!");
-				}
-				else if(!passString.equals(confirmString)){  //确认密码错误提示
-					JOptionPane.showMessageDialog(null, "Please type the same password in two field!");
-				}
-				else {
-					try {     //注册成功，写入信息
-						RemoteHelper.getInstance().getIOService().writeFile(userInf, "Admin","userlist",true);
-					} catch (RemoteException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					int i = JOptionPane.showConfirmDialog(null, "Success!Do you want to login directly?","Congratulation!",JOptionPane.YES_NO_OPTION);
-					if(i==0){  
-						frame.setVisible(true);//判断是否要直接登录
-						nameField.setText(userNameString);
-						passField.setText(passString);
-						button1.doClick();
-						signframe.dispose();
-						
-					}
-					else if(i==1){
-						signframe.dispose();
-						frame.setVisible(true);
-					}
-				}
-		
-			}
-			
-		}
-		class windowCloseListener extends WindowAdapter{
-			@Override
-			public void windowClosing(WindowEvent e) {
-				// TODO Auto-generated method stub
-				concelButton.doClick();
-			}
-		}
-		class concelListener implements ActionListener{
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				signframe.dispose();
-				frame.setVisible(true);
-			}
-			
-		}
-	}
+	
 	class SignListener implements ActionListener{
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
 			frame.setVisible(false);
-			SignUp signUp = new SignUp();
+			SignUp signUp = new SignUp(logFrame);
 		}
 		
 	}
@@ -297,9 +168,21 @@ public class LogFrame {
 				for(String s:checkStrings){    //检查账户密码是否正确
 					System.out.println(s);
 					if(s.equals(user_InfString)){
+						if(!isActive(userName)){
+						try {
+							RemoteHelper.getInstance().getIOService().writeFile(userName+" ","Admin", "activeList",true);
+						} catch (RemoteException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						mainFrame = new MainFrame(userName);
 						frame.dispose();
 						isRight = true;
+						}
+						else {
+							JOptionPane.showMessageDialog(null, "The user is active!");
+							return;
+						}
 					}
 				}
 				if(!isRight){
@@ -311,41 +194,27 @@ public class LogFrame {
 		}
 		
 	}
-	class revoke implements Runnable{
-		ArrayList<State> saveList;
-		MainFrame frame;
-		int ptr=0;
-		public revoke(MainFrame mframe) {
-			
-			
-			frame = mframe;
-			saveList = frame.saveList;
-			State firstState = new State(frame.getcode(),frame.getInput());
-			saveList.add(firstState);
-			// TODO Auto-generated constructor stub
-		}
-
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			while(true){
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			State newState = new State(frame.getcode(), frame.getInput());
-			if(!(newState.equals(saveList.get(ptr)))){
-				saveList.add(newState);
-				ptr++;
-				frame.ptr=ptr;
+	public boolean isActive(String userName){
+		try {
+			String activeString=RemoteHelper.getInstance().getIOService().readFile("Admin", "activeList");
+			if(activeString.trim().length()<1){
+				return false;
 			}
+			String []active = activeString.trim().split(" ");
+			for(String s:active){
+				if(s.equals(userName)){
+					return true;
+				}
+				
+			}
+			
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
+		return false;
 	}
-	}
-	class logKeyListener implements KeyListener{
+	class logKeyListener implements KeyListener{  //快捷键，回车将光标移到密码处。
 
 		@Override
 		public void keyPressed(KeyEvent e) {
