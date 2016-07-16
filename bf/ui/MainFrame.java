@@ -667,10 +667,16 @@ public class MainFrame {
 	class WindowsActionlistener extends WindowAdapter{  //监听关闭按钮
 		 public void windowClosing ( WindowEvent e )
         { 
+			 
 			 //询问是否保存
 			 int i =JOptionPane.showConfirmDialog(null, "Do you want to save before exit?","Exit the IDE",JOptionPane.YES_NO_CANCEL_OPTION);
 			 if(i==0){
-				 saveItem.doClick();
+				 try {
+					 saveItem.doClick();
+				} catch (Exception e2) {
+					// TODO: handle exception
+				}
+				
 				 deletActive(userNameString);
 				 frame.dispose();
 			 }
